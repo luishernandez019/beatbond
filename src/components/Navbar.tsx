@@ -1,44 +1,35 @@
 "use client";
-import Link from "next/link";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 function Navbar() {
   const { data: session } = useSession();
 
   return (
-    <nav className="bg-slate-900 flex items-center justify-between px-24 py-3 text-white">
-      <Link href="/">
-        <h1>NextGoogle</h1>
-      </Link>
+    <nav className="absolute top-0 left-0 w-full flex items-center justify-between px-24 py-[45px]">
+      <h1
+        className={`
+          flex gap-x-[15px] text-[34px] font-bold
+          ${session?.user ? "text-white" : "text-[#1E1E1E]"}
+        `}
+      >
+        <img src="/icons/beatbond.svg" alt="BeatBond icon"/>
+        BeatBond
+      </h1>
 
       {session?.user ? (
-        <div className="flex gap-x-2 items-center">
-          <Link href="/dashboard">Dashboard</Link>
-          <p>
-            {session.user.name} {session.user.email}
-          </p>
-          <img
-            src={session.user.image ?? ""}
-            alt=""
-            className="w-10 h-10 rounded-full cursor-pointer"
-          />
-          <button
-            onClick={async () => {
-              await signOut({
-                callbackUrl: "/",
-              })
-            }}
-          >
-            Logout
-          </button>
-        </div>
+        <img
+          src="/icons/logout.svg" alt="Sign out icon"
+          className="cursor-pointer"
+          onClick={async () => {
+            await signOut({
+              callbackUrl: "/",
+            })
+          }}
+        />
       ) : (
-        <button
-          onClick={() => signIn()}
-          className="bg-sky-400 px-3 py-2 rounded"
-        >
-          Sign In
-        </button>
+        <h1 className="text-lg font-medium cursor-pointer">
+          Privacy Policy
+        </h1>
       )}
     </nav>
   );
