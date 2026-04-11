@@ -20,7 +20,7 @@ interface UseRecommendationsReturn {
   fetchRecommendations: () => Promise<void>;
 }
 
-export function useRecommendations(): UseRecommendationsReturn {
+export function useRecommendations(saveToPlaylist = false): UseRecommendationsReturn {
   const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -67,6 +67,7 @@ export function useRecommendations(): UseRecommendationsReturn {
     setIndex((i) => i + 1);
     setLikedCount((c) => c + 1);
 
+    // Like — rollback on failure
     try {
       const res = await fetchWithTimeout("/api/spotify/like", {
         method: "PUT",
@@ -78,6 +79,21 @@ export function useRecommendations(): UseRecommendationsReturn {
       setIndex((i) => i - 1);
       setLikedCount((c) => c - 1);
       setLikeError("Couldn't save to Liked Songs. Try again.");
+      return;
+    }
+
+    // Playlist — independent, no rollback
+    if (saveToPlaylist) {
+      try {
+        const res = await fetchWithTimeout("/api/spotify/playlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ trackId: track.id }),
+        });
+        if (!res.ok) throw new Error();
+      } catch {
+        setLikeError("Saved to Liked Songs, but couldn't add to BeatBond playlist.");
+      }
     }
   }
 

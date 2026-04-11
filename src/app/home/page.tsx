@@ -10,6 +10,15 @@ import { useRecommendations } from "@/hooks/useRecommendations";
 export default function HomePage() {
   const cardRef = useRef<SongCardHandle>(null);
   const [activeView, setActiveView] = useState<NavView>("home");
+  const [saveToPlaylist, setSaveToPlaylist] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("beatbond_save_to_playlist") === "true";
+  });
+
+  function handleSaveToPlaylistChange(checked: boolean) {
+    setSaveToPlaylist(checked);
+    localStorage.setItem("beatbond_save_to_playlist", String(checked));
+  }
 
   const {
     loading,
@@ -24,7 +33,7 @@ export default function HomePage() {
     handleDislike,
     handlePlayerState,
     fetchRecommendations,
-  } = useRecommendations();
+  } = useRecommendations(saveToPlaylist);
 
   const showControls = activeView === "home" && !loading && !isDone && !error && !!currentTrack;
 
@@ -160,11 +169,38 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="w-[320px] h-[480px] flex flex-col items-center justify-center text-white gap-3"
+              className="w-[320px] flex flex-col gap-4"
             >
-              <p className="text-4xl">⚙️</p>
-              <h2 className="text-xl font-bold">Settings</h2>
-              <p className="text-white/50 text-sm">Coming soon</p>
+              {/* Settings card */}
+              <div className="bg-[#4A2D9E] rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+                <h2 className="text-white text-xl font-bold tracking-tight">Ajustes</h2>
+
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className="relative mt-0.5 flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={saveToPlaylist}
+                      onChange={(e) => handleSaveToPlaylistChange(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-5 h-5 rounded-md border-2 border-[#BC96FF] bg-transparent peer-checked:bg-[#BC96FF] peer-checked:border-[#BC96FF] transition flex items-center justify-center">
+                      {saveToPlaylist && (
+                        <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+                          <path d="M1 3.5L4 6.5L10 1" stroke="#371F7D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-white text-sm font-medium leading-snug">
+                      Guardar en playlist BeatBond
+                    </span>
+                    <span className="text-white/50 text-xs leading-snug">
+                      Las canciones con las que hagas match se añadirán automáticamente a tu playlist "BeatBond" en Spotify.
+                    </span>
+                  </div>
+                </label>
+              </div>
             </motion.div>
           )}
 

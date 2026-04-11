@@ -20,8 +20,9 @@ async function spotifyFetch<T>(
     throw new Error(`Spotify ${res.status}: ${res.statusText}`);
   }
 
-  if (res.status === 204) return undefined as T;
-  return res.json();
+  const text = await res.text();
+  if (!text) return undefined as T;
+  return JSON.parse(text);
 }
 
 export async function getTopTracks(
@@ -149,5 +150,47 @@ export async function addToLikedSongs(
     `/me/tracks?ids=${trackId}`,
     accessToken,
     { method: "PUT" }
+  );
+}
+
+export async function getOrCreateBeatBondPlaylist(
+  accessToken: string
+): Promise<string> {
+  const me = await spotifyFetch<{ id: string }>("/me", accessToken);
+
+  const page = await spotifyFetch<{ items: { id: string; name: string }[] }>(
+    "/me/playlists?limit=50",
+    accessToken
+  );
+  const existing = page.items.find((p) => p.name === "BeatBond");
+  if (existing) return existing.id;
+
+  const created = await spotifyFetch<{ id: string }>(
+    `/users/${me.id}/playlists`,
+    accessToken,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        name: "BeatBond",
+        description: "Songs matched on BeatBond.com",
+        public: false,
+      }),
+    }
+  );
+  return created.id;
+}
+
+export async function addTrackToPlaylist(
+  accessToken: string,
+  playlistId: string,
+  trackId: string
+): Promise<void> {
+  await spotifyFetch<undefined>(
+    `/playlists/${playlistId}/tracks`,
+    accessToken,
+    {
+      method: "POST",
+      body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
+    }
   );
 }
