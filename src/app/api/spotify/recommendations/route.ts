@@ -8,28 +8,9 @@ import {
   getRelatedArtists,
   getArtistTopTracks,
   getNewReleases,
-  getFullTracks,
+  enrichWithPreviews,
 } from "@/lib/spotify";
 import { SpotifyTrack } from "@/types/spotify";
-
-/** Enrich a list of tracks with full objects so preview_url is populated. */
-async function enrichWithPreviews(
-  token: string,
-  tracks: SpotifyTrack[]
-): Promise<SpotifyTrack[]> {
-  const missingIds = tracks
-    .filter((t) => !t.preview_url)
-    .map((t) => t.id);
-
-  if (missingIds.length === 0) return tracks;
-
-  const full = await getFullTracks(token, missingIds).catch(() => []);
-  const fullMap = new Map(full.map((t) => [t.id, t]));
-
-  return tracks.map((t) =>
-    t.preview_url ? t : (fullMap.get(t.id) ?? t)
-  );
-}
 
 export async function GET() {
   const session = await getServerSession(authOptions);

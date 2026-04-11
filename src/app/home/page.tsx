@@ -1,89 +1,27 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useRef } from "react";
 import { X, Heart } from "lucide-react";
-import { SongCard, SongCardHandle, CircularPlayer, PlayerState } from "@/components/SongCard";
-import { SpotifyTrack } from "@/types/spotify";
-
-function fetchWithTimeout(input: RequestInfo, init?: RequestInit, ms = 10_000): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
-}
+import { SongCard, SongCardHandle } from "@/components/SongCard";
+import { CircularPlayer } from "@/components/CircularPlayer";
+import { useRecommendations } from "@/hooks/useRecommendations";
 
 export default function HomePage() {
-  const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
-  const [index, setIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [likedCount, setLikedCount] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [likeError, setLikeError] = useState<string | null>(null);
-  const [playerState, setPlayerState] = useState<PlayerState>({
-    isPlaying: false,
-    progress: 0,
-    hasPreview: false,
-    loading: false,
-  });
-
   const cardRef = useRef<SongCardHandle>(null);
+  const {
+    loading,
+    error,
+    likedCount,
+    likeError,
+    playerState,
+    currentTrack,
+    nextTrack,
+    isDone,
+    handleLike,
+    handleDislike,
+    handlePlayerState,
+    fetchRecommendations,
+  } = useRecommendations();
 
-  useEffect(() => {
-    fetchRecommendations();
-  }, []);
-
-  // Auto-dismiss like error after 3 s
-  useEffect(() => {
-    if (!likeError) return;
-    const timer = setTimeout(() => setLikeError(null), 3000);
-    return () => clearTimeout(timer);
-  }, [likeError]);
-
-  async function fetchRecommendations() {
-    setLoading(true);
-    setError(null);
-    setIndex(0);
-    try {
-      const res = await fetchWithTimeout("/api/spotify/recommendations");
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setTracks(data.tracks ?? []);
-    } catch {
-      setError("Could not load recommendations. Try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleLike() {
-    const track = tracks[index];
-    setIndex((i) => i + 1);
-    setLikedCount((c) => c + 1);
-
-    try {
-      const res = await fetchWithTimeout("/api/spotify/like", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trackId: track.id }),
-      });
-      if (!res.ok) throw new Error();
-    } catch {
-      // Revert optimistic update
-      setIndex((i) => i - 1);
-      setLikedCount((c) => c - 1);
-      setLikeError("Couldn't save to Liked Songs. Try again.");
-    }
-  }
-
-  function handleDislike() {
-    setIndex((i) => i + 1);
-  }
-
-  const handlePlayerState = useCallback((state: PlayerState) => {
-    setPlayerState(state);
-  }, []);
-
-  const currentTrack = tracks[index];
-  const nextTrack    = tracks[index + 1];
-  const isDone       = !loading && index >= tracks.length;
   const showControls = !loading && !isDone && !error && !!currentTrack;
 
   return (

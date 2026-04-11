@@ -123,6 +123,24 @@ export async function getFullTracks(
   return data.tracks.filter((t): t is SpotifyTrack => t !== null);
 }
 
+/**
+ * Enrich a list of tracks with their full objects so preview_url is populated.
+ * Simplified track objects (from albums/artists endpoints) often have preview_url: null,
+ * while the full track endpoint (/tracks?ids=...) returns it reliably.
+ */
+export async function enrichWithPreviews(
+  accessToken: string,
+  tracks: SpotifyTrack[]
+): Promise<SpotifyTrack[]> {
+  const missingIds = tracks.filter((t) => !t.preview_url).map((t) => t.id);
+  if (missingIds.length === 0) return tracks;
+
+  const full = await getFullTracks(accessToken, missingIds).catch(() => []);
+  const fullMap = new Map(full.map((t) => [t.id, t]));
+
+  return tracks.map((t) => (t.preview_url ? t : (fullMap.get(t.id) ?? t)));
+}
+
 export async function addToLikedSongs(
   accessToken: string,
   trackId: string
