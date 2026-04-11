@@ -5,10 +5,10 @@ function Navbar() {
   const { data: session } = useSession();
 
   return (
-    <nav className="absolute top-0 left-0 w-full flex items-center justify-between px-24 py-[45px] z-10">
+    <nav className="absolute top-0 left-0 w-full flex items-center justify-between px-6 py-6 md:px-24 md:py-[45px] z-10">
       <h1
         className={`
-          flex gap-x-[15px] text-[34px] font-bold
+          flex gap-x-[10px] md:gap-x-[15px] text-2xl md:text-[34px] font-bold
           ${session?.user ? "text-white" : "text-[#1E1E1E]"}
         `}
       >
