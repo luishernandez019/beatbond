@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { X, Heart } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { SongCard, SongCardHandle } from "@/components/SongCard";
 import { CircularPlayer } from "@/components/CircularPlayer";
 import { FloatingNav, NavView } from "@/components/FloatingNav";
@@ -38,20 +39,28 @@ export default function HomePage() {
       )}
 
       {/* FloatingNav — absolute on desktop, vertically centered on the left */}
-      <div className="hidden lg:flex absolute left-12 top-1/2 -translate-y-1/2">
+      <div className="hidden lg:flex absolute left-24 top-1/2 -translate-y-1/2">
         <FloatingNav
           activeView={activeView}
           onNavigate={setActiveView}
           orientation="vertical"
+          instanceId="desktop"
         />
       </div>
 
       {/* Main content — always centered */}
       <div className="flex flex-col items-center gap-8">
 
-          {/* ── Home view ── */}
+        <AnimatePresence mode="wait">
           {activeView === "home" && (
-            <>
+            <motion.div
+              key="home"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="flex flex-col items-center gap-8"
+            >
               {/* Card stack */}
               <div className="relative w-[320px] h-[480px]">
                 {loading ? (
@@ -140,37 +149,53 @@ export default function HomePage() {
                   </>
                 )}
               </div>
-            </>
+            </motion.div>
           )}
 
           {/* ── Settings view ── */}
           {activeView === "settings" && (
-            <div className="w-[320px] h-[480px] flex flex-col items-center justify-center text-white gap-3">
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="w-[320px] h-[480px] flex flex-col items-center justify-center text-white gap-3"
+            >
               <p className="text-4xl">⚙️</p>
               <h2 className="text-xl font-bold">Settings</h2>
               <p className="text-white/50 text-sm">Coming soon</p>
-            </div>
+            </motion.div>
           )}
 
           {/* ── Liked view ── */}
           {activeView === "liked" && (
-            <div className="w-[320px] h-[480px] flex flex-col items-center justify-center text-white gap-3">
+            <motion.div
+              key="liked"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="w-[320px] h-[480px] flex flex-col items-center justify-center text-white gap-3"
+            >
               <p className="text-4xl">♥</p>
               <h2 className="text-xl font-bold">Liked Songs</h2>
               <p className="text-white/50 text-sm">Coming soon</p>
-            </div>
+            </motion.div>
           )}
+        </AnimatePresence>
 
-          {/* FloatingNav — horizontal on mobile/tablet */}
-          <div className="lg:hidden">
-            <FloatingNav
-              activeView={activeView}
-              onNavigate={setActiveView}
-              orientation="horizontal"
-            />
-          </div>
-
+        {/* FloatingNav — horizontal on mobile/tablet */}
+        <div className="lg:hidden">
+          <FloatingNav
+            activeView={activeView}
+            onNavigate={setActiveView}
+            orientation="horizontal"
+            instanceId="mobile"
+          />
         </div>
+
+      </div>
     </section>
   );
 }

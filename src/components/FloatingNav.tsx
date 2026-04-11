@@ -1,4 +1,5 @@
 "use client";
+import { motion } from "framer-motion";
 import { Settings, Heart } from "lucide-react";
 import { useSession } from "next-auth/react";
 
@@ -19,9 +20,10 @@ interface FloatingNavProps {
   activeView: NavView;
   onNavigate: (view: NavView) => void;
   orientation: "vertical" | "horizontal";
+  instanceId?: string;
 }
 
-export function FloatingNav({ activeView, onNavigate, orientation }: FloatingNavProps) {
+export function FloatingNav({ activeView, onNavigate, orientation, instanceId = "default" }: FloatingNavProps) {
   const { data: session } = useSession();
   const isVertical = orientation === "vertical";
 
@@ -41,32 +43,44 @@ export function FloatingNav({ activeView, onNavigate, orientation }: FloatingNav
           <button
             key={id}
             onClick={() => onNavigate(id)}
-            className={`
-              w-13 h-13 rounded-full flex items-center justify-center
-              transition cursor-pointer
-              ${isActive ? "bg-[#371F7D]" : "hover:bg-white/30"}
-            `}
+            className="relative w-13 h-13 rounded-full flex items-center justify-center cursor-pointer"
             title={id}
           >
-            {Icon === null ? (
-              /* BeatBond logo shape — filtered to match state colors */
-              <img
-                src="/icons/beatbond.svg"
-                alt=""
-                width={24}
-                height={24}
-                className={isActive
-                  ? "[filter:brightness(0)_saturate(100%)_invert(93%)_sepia(46%)_saturate(500%)_hue-rotate(30deg)]"
-                  : "[filter:brightness(0)_saturate(100%)_invert(13%)_sepia(60%)_saturate(900%)_hue-rotate(240deg)]"
-                }
-              />
-            ) : (
-              <Icon
-                size={20}
-                color={isActive ? "#D7FF81" : "#371F7D"}
-                fill={isActive ? "#D7FF81" : "none"}
+            {/* Sliding active background */}
+            {isActive && (
+              <motion.div
+                layoutId={`nav-active-bg-${instanceId}`}
+                className="absolute inset-0 rounded-full bg-[#371F7D]"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
               />
             )}
+
+            {/* Hover background (inactive only) */}
+            {!isActive && (
+              <span className="absolute inset-0 rounded-full hover:bg-white/30 transition" />
+            )}
+
+            {/* Icon */}
+            <span className="relative z-10">
+              {Icon === null ? (
+                <img
+                  src="/icons/beatbond.svg"
+                  alt=""
+                  width={24}
+                  height={24}
+                  className={isActive
+                    ? "[filter:brightness(0)_saturate(100%)_invert(93%)_sepia(46%)_saturate(500%)_hue-rotate(30deg)]"
+                    : "[filter:brightness(0)_saturate(100%)_invert(13%)_sepia(60%)_saturate(900%)_hue-rotate(240deg)]"
+                  }
+                />
+              ) : (
+                <Icon
+                  size={20}
+                  color={isActive ? "#D7FF81" : "#371F7D"}
+                  fill={isActive ? "#D7FF81" : "none"}
+                />
+              )}
+            </span>
           </button>
         );
       })}
