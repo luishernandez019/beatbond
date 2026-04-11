@@ -5,7 +5,7 @@ function Navbar() {
   const { data: session } = useSession();
 
   return (
-    <nav className="absolute top-0 left-0 w-full flex items-center justify-between px-24 py-[45px]">
+    <nav className="absolute top-0 left-0 w-full flex items-center justify-between px-24 py-[45px] z-10">
       <h1
         className={`
           flex gap-x-[15px] text-[34px] font-bold
