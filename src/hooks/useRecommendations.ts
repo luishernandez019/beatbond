@@ -23,8 +23,6 @@ function saveSeen(seen: Set<string>) {
 
 export interface Filters {
   genres: string[];
-  energy: number | null;
-  mood: number | null;
 }
 
 interface UseRecommendationsReturn {
@@ -50,7 +48,7 @@ interface UseRecommendationsReturn {
   fetchRecommendations: () => Promise<void>;
 }
 
-const DEFAULT_FILTERS: Filters = { genres: [], energy: null, mood: null };
+const DEFAULT_FILTERS: Filters = { genres: [] };
 
 export function useRecommendations(
   saveToPlaylist = false,
@@ -89,7 +87,7 @@ export function useRecommendations(
   }, [likeError]);
 
   const fetchRecommendations = useCallback(async () => {
-    const { genres, energy, mood } = filtersRef.current;
+    const { genres } = filtersRef.current;
     setLoading(true);
     setError(null);
     setIndex(0);
@@ -98,8 +96,6 @@ export function useRecommendations(
       const seen = loadSeen();
       const params = new URLSearchParams();
       if (genres.length > 0) params.set("genres", genres.join(","));
-      if (energy != null) params.set("energy", energy.toString());
-      if (mood != null) params.set("mood", mood.toString());
       if (seen.size > 0) params.set("exclude", Array.from(seen).join(","));
       const url = `/api/spotify/recommendations${params.toString() ? `?${params}` : ""}`;
       const res = await fetchWithTimeout(url);

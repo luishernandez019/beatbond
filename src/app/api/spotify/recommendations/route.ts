@@ -53,13 +53,9 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const genresParam  = searchParams.get("genres");
-  const energyParam  = searchParams.get("energy");
-  const moodParam    = searchParams.get("mood");
   const excludeParam = searchParams.get("exclude");
   const filters = {
     genres: genresParam ? genresParam.split(",").filter(Boolean) : [],
-    energy: energyParam ? parseFloat(energyParam) : null,
-    mood:   moodParam   ? parseFloat(moodParam)   : null,
   };
   const excludeIds = new Set(excludeParam ? excludeParam.split(",").filter(Boolean) : []);
 

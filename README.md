@@ -14,7 +14,7 @@ BeatBond is a music discovery app that works like Tinder for songs. It connects 
 - **BeatBond playlist** — optional toggle to also collect liked tracks in a private playlist
 - **30-second previews** — listen before you decide
 - **Undo** — reverse the last skip if you change your mind
-- **Filters** — narrow recommendations by genre, energy level, and mood
+- **Filters** — narrow recommendations by genre
 - **Track history** — review and re-queue songs you previously skipped
 - **Liked songs view** — browse and unlike tracks from within the app
 - **Stateless & private** — no database, no persistent storage of your data
@@ -121,7 +121,7 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with Spotify.
 
 The `/api/spotify/recommendations` endpoint tries three strategies in order, falling back to the next if one fails:
 
-1. **Spotify Recommendations API** — seeds from your top tracks; respects genre, energy, and mood filters. *(Only available to apps created before Nov 2024 — if unavailable it falls through automatically.)*
+1. **Spotify Recommendations API** — seeds from your top tracks; respects genre filters. *(Only available to apps created before Nov 2024 — if unavailable it falls through automatically.)*
 2. **Related artists** — fetches your top artists, finds related ones, and pulls their top tracks for a pool of ~100 candidates.
 3. **New releases** — falls back to recently released albums when no listening history is available (useful for brand-new accounts).
 

@@ -49,8 +49,6 @@ export async function getTopArtists(
 
 export interface RecommendationFilters {
   genres?: string[];
-  energy?: number | null;
-  mood?: number | null;
 }
 
 export async function getRecommendations(
@@ -58,7 +56,7 @@ export async function getRecommendations(
   seedTrackIds: string[],
   filters?: RecommendationFilters
 ): Promise<SpotifyTrack[]> {
-  const { genres = [], energy = null, mood = null } = filters ?? {};
+  const { genres = [] } = filters ?? {};
 
   const genreSeeds = genres.slice(0, 3);
   const trackSeeds = seedTrackIds.slice(0, 5 - genreSeeds.length);
@@ -66,8 +64,6 @@ export async function getRecommendations(
   const params = new URLSearchParams({ limit: "50" });
   if (trackSeeds.length > 0) params.set("seed_tracks", trackSeeds.join(","));
   if (genreSeeds.length > 0) params.set("seed_genres", genreSeeds.join(","));
-  if (energy != null) params.set("target_energy", energy.toFixed(2));
-  if (mood != null) params.set("target_valence", mood.toFixed(2));
 
   const data = await spotifyFetch<{ tracks: SpotifyTrack[] }>(
     `/recommendations?${params}`,

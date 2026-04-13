@@ -13,7 +13,7 @@ const GENRES = [
   "latin", "r-n-b", "folk", "indie", "soul", "dance",
 ];
 
-const DEFAULT_FILTERS: Filters = { genres: [], energy: null, mood: null };
+const DEFAULT_FILTERS: Filters = { genres: [] };
 
 function TrackRow({
   track,
@@ -396,92 +396,6 @@ export default function HomePage() {
                       );
                     })}
                   </div>
-                </div>
-
-                {/* Energy slider */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <div className="relative flex-shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={filters.energy != null}
-                          onChange={(e) =>
-                            setFilters((f) => ({ ...f, energy: e.target.checked ? 0.5 : null }))
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-4 h-4 rounded border-2 border-[#BC96FF] bg-transparent peer-checked:bg-[#BC96FF] peer-checked:border-[#BC96FF] transition flex items-center justify-center">
-                          {filters.energy != null && (
-                            <svg width="9" height="7" viewBox="0 0 11 8" fill="none">
-                              <path d="M1 3.5L4 6.5L10 1" stroke="#371F7D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-white text-sm font-medium">Energía</span>
-                    </label>
-                    {filters.energy != null && (
-                      <span className="text-[#BC96FF] text-xs font-semibold">
-                        {Math.round(filters.energy * 100)}%
-                      </span>
-                    )}
-                  </div>
-                  {filters.energy != null && (
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={Math.round(filters.energy * 100)}
-                      onChange={(e) =>
-                        setFilters((f) => ({ ...f, energy: parseInt(e.target.value) / 100 }))
-                      }
-                      className="w-full accent-[#BC96FF]"
-                    />
-                  )}
-                </div>
-
-                {/* Mood slider */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <div className="relative flex-shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={filters.mood != null}
-                          onChange={(e) =>
-                            setFilters((f) => ({ ...f, mood: e.target.checked ? 0.5 : null }))
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-4 h-4 rounded border-2 border-[#BC96FF] bg-transparent peer-checked:bg-[#BC96FF] peer-checked:border-[#BC96FF] transition flex items-center justify-center">
-                          {filters.mood != null && (
-                            <svg width="9" height="7" viewBox="0 0 11 8" fill="none">
-                              <path d="M1 3.5L4 6.5L10 1" stroke="#371F7D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-white text-sm font-medium">Positividad</span>
-                    </label>
-                    {filters.mood != null && (
-                      <span className="text-[#BC96FF] text-xs font-semibold">
-                        {Math.round(filters.mood * 100)}%
-                      </span>
-                    )}
-                  </div>
-                  {filters.mood != null && (
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={Math.round(filters.mood * 100)}
-                      onChange={(e) =>
-                        setFilters((f) => ({ ...f, mood: parseInt(e.target.value) / 100 }))
-                      }
-                      className="w-full accent-[#BC96FF]"
-                    />
-                  )}
                 </div>
 
                 <button
