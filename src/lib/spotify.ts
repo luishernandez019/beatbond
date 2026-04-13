@@ -63,7 +63,7 @@ export async function getRecommendations(
   const genreSeeds = genres.slice(0, 3);
   const trackSeeds = seedTrackIds.slice(0, 5 - genreSeeds.length);
 
-  const params = new URLSearchParams({ limit: "20" });
+  const params = new URLSearchParams({ limit: "50" });
   if (trackSeeds.length > 0) params.set("seed_tracks", trackSeeds.join(","));
   if (genreSeeds.length > 0) params.set("seed_genres", genreSeeds.join(","));
   if (energy != null) params.set("target_energy", energy.toFixed(2));
@@ -135,7 +135,7 @@ export async function getNewReleases(
 ): Promise<SpotifyTrack[]> {
   type SpotifyAlbumItem = SpotifyTrack["album"] & { artists: SpotifyTrack["artists"] };
   const data = await spotifyFetch<{ albums: { items: SpotifyAlbumItem[] } }>(
-    `/browse/new-releases?limit=10&offset=${offset}&country=US`,
+    `/browse/new-releases?limit=20&offset=${offset}&country=US`,
     accessToken
   );
 
@@ -143,7 +143,7 @@ export async function getNewReleases(
 
   // Fetch up to 3 tracks per album, attach album info to each track
   const results: SpotifyTrack[] = [];
-  for (const album of albums.slice(0, 7)) {
+  for (const album of albums.slice(0, 15)) {
     if (results.length >= limit) break;
     const albumTracks = await spotifyFetch<{ items: SpotifyTrack[] }>(
       `/albums/${album.id}/tracks?limit=3`,

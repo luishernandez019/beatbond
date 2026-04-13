@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 import { Providers } from "./Providers";
 import Navbar from "@/components/Navbar";
 import "./globals.css";
@@ -16,17 +18,17 @@ export const metadata: Metadata = {
   description: "Your favorite music matcher",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
-      <body
-        className={poppins.className}
-      >
-        <Providers>
+      <body className={poppins.className}>
+        <Providers session={session}>
           <Navbar/>
           {children}
         </Providers>

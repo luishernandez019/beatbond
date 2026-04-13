@@ -272,7 +272,7 @@ export default function HomePage() {
               <h2 className="text-white text-xl font-bold tracking-tight">Me gusta</h2>
               {likedTracks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[400px] gap-3 text-white">
-                  <p className="text-4xl">♥</p>
+                  <Heart size={36} className="text-white fill-white" />
                   <p className="text-white/50 text-sm">Aún no hay canciones con like</p>
                 </div>
               ) : (

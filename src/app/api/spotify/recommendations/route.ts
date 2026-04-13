@@ -26,6 +26,30 @@ export async function GET(request: NextRequest) {
     return [...arr].sort(() => Math.random() - 0.5);
   }
 
+  function dedupe(tracks: SpotifyTrack[]): SpotifyTrack[] {
+    const seen = new Set<string>();
+    return tracks.filter((t) => {
+      if (seen.has(t.id)) return false;
+      seen.add(t.id);
+      return true;
+    });
+  }
+
+  function limitPerAlbum(tracks: SpotifyTrack[], max = 1): SpotifyTrack[] {
+    const count = new Map<string, number>();
+    return tracks.filter((t) => {
+      const albumId = t.album?.id ?? t.id;
+      const n = count.get(albumId) ?? 0;
+      if (n >= max) return false;
+      count.set(albumId, n + 1);
+      return true;
+    });
+  }
+
+  function clean(tracks: SpotifyTrack[]): SpotifyTrack[] {
+    return limitPerAlbum(dedupe(tracks));
+  }
+
   const { searchParams } = new URL(request.url);
   const genresParam = searchParams.get("genres");
   const energyParam = searchParams.get("energy");
@@ -44,7 +68,7 @@ export async function GET(request: NextRequest) {
         const seeds = shuffle(topTracks).slice(0, 5);
         const raw = await getRecommendations(token, seeds.map((t) => t.id), filters);
         if (raw.length > 0) {
-          const tracks = await enrichWithPreviews(token, shuffle(raw));
+          const tracks = await enrichWithPreviews(token, clean(shuffle(raw)));
           return NextResponse.json({ tracks });
         }
       } catch {
@@ -60,7 +84,7 @@ export async function GET(request: NextRequest) {
     try {
       const raw = await getTracksByGenres(token, filters.genres);
       if (raw.length > 0) {
-        const tracks = await enrichWithPreviews(token, shuffle(raw));
+        const tracks = await enrichWithPreviews(token, clean(shuffle(raw)));
         return NextResponse.json({ tracks });
       }
     } catch {
@@ -76,7 +100,7 @@ export async function GET(request: NextRequest) {
       const relatedArrays = await Promise.all(
         pickedArtists.map((a) => getRelatedArtists(token, a.id).catch(() => []))
       );
-      const relatedArtists = shuffle(relatedArrays.flat()).slice(0, 6);
+      const relatedArtists = shuffle(relatedArrays.flat()).slice(0, 10);
 
       const trackArrays = await Promise.all(
         relatedArtists.map((a) => getArtistTopTracks(token, a.id).catch(() => []))
@@ -84,10 +108,10 @@ export async function GET(request: NextRequest) {
 
       const unique: SpotifyTrack[] = Array.from(
         new Map(shuffle(trackArrays.flat()).map((t) => [t.id, t])).values()
-      ).slice(0, 20);
+      ).slice(0, 50);
 
       if (unique.length > 0) {
-        const tracks = await enrichWithPreviews(token, unique);
+        const tracks = await enrichWithPreviews(token, clean(unique));
         return NextResponse.json({ tracks });
       }
     }
@@ -99,7 +123,7 @@ export async function GET(request: NextRequest) {
   try {
     const offset = Math.floor(Math.random() * 40);
     const raw = await getNewReleases(token, 20, offset);
-    const tracks = await enrichWithPreviews(token, shuffle(raw));
+    const tracks = await enrichWithPreviews(token, clean(shuffle(raw)));
     return NextResponse.json({ tracks });
   } catch (err) {
     console.error("All recommendation strategies failed:", err);

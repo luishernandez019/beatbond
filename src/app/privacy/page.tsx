@@ -261,7 +261,7 @@ export default function PrivacyPolicyPage() {
               href="https://www.luishernandez.digital"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#371F7D] font-medium hover:opacity-75 transition-opacity"
+              className="text-[#371F7D] font-bold hover:opacity-75 transition-opacity"
             >
               Luis Hernández
             </a>
