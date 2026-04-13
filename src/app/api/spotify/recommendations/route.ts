@@ -10,6 +10,7 @@ import {
   getArtistTopTracks,
   getNewReleases,
   enrichWithPreviews,
+  checkLikedTracks,
 } from "@/lib/spotify";
 import { SpotifyTrack } from "@/types/spotify";
 
@@ -51,14 +52,21 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const genresParam = searchParams.get("genres");
-  const energyParam = searchParams.get("energy");
-  const moodParam   = searchParams.get("mood");
+  const genresParam  = searchParams.get("genres");
+  const energyParam  = searchParams.get("energy");
+  const moodParam    = searchParams.get("mood");
+  const excludeParam = searchParams.get("exclude");
   const filters = {
     genres: genresParam ? genresParam.split(",").filter(Boolean) : [],
     energy: energyParam ? parseFloat(energyParam) : null,
     mood:   moodParam   ? parseFloat(moodParam)   : null,
   };
+  const excludeIds = new Set(excludeParam ? excludeParam.split(",").filter(Boolean) : []);
+
+  async function removeAlreadyLiked(tracks: SpotifyTrack[]): Promise<SpotifyTrack[]> {
+    const liked = await checkLikedTracks(token, tracks.map((t) => t.id));
+    return tracks.filter((t) => !liked.has(t.id) && !excludeIds.has(t.id));
+  }
 
   // --- Strategy 1: recommendations endpoint (pre-Nov 2024 apps) ---------------
   try {
@@ -68,8 +76,8 @@ export async function GET(request: NextRequest) {
         const seeds = shuffle(topTracks).slice(0, 5);
         const raw = await getRecommendations(token, seeds.map((t) => t.id), filters);
         if (raw.length > 0) {
-          const tracks = await enrichWithPreviews(token, clean(shuffle(raw)));
-          return NextResponse.json({ tracks });
+          const tracks = await removeAlreadyLiked(await enrichWithPreviews(token, clean(shuffle(raw))));
+          if (tracks.length > 0) return NextResponse.json({ tracks });
         }
       } catch {
         // recommendations not available — fall through
@@ -84,8 +92,8 @@ export async function GET(request: NextRequest) {
     try {
       const raw = await getTracksByGenres(token, filters.genres);
       if (raw.length > 0) {
-        const tracks = await enrichWithPreviews(token, clean(shuffle(raw)));
-        return NextResponse.json({ tracks });
+        const tracks = await removeAlreadyLiked(await enrichWithPreviews(token, clean(shuffle(raw))));
+        if (tracks.length > 0) return NextResponse.json({ tracks });
       }
     } catch {
       // fall through
@@ -111,8 +119,8 @@ export async function GET(request: NextRequest) {
       ).slice(0, 50);
 
       if (unique.length > 0) {
-        const tracks = await enrichWithPreviews(token, clean(unique));
-        return NextResponse.json({ tracks });
+        const tracks = await removeAlreadyLiked(await enrichWithPreviews(token, clean(unique)));
+        if (tracks.length > 0) return NextResponse.json({ tracks });
       }
     }
   } catch {
@@ -123,7 +131,7 @@ export async function GET(request: NextRequest) {
   try {
     const offset = Math.floor(Math.random() * 40);
     const raw = await getNewReleases(token, 20, offset);
-    const tracks = await enrichWithPreviews(token, clean(shuffle(raw)));
+    const tracks = await removeAlreadyLiked(await enrichWithPreviews(token, clean(shuffle(raw))));
     return NextResponse.json({ tracks });
   } catch (err) {
     console.error("All recommendation strategies failed:", err);

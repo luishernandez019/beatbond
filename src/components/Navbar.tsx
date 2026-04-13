@@ -32,7 +32,7 @@ function Navbar() {
           }}
         />
       ) : pathname !== "/privacy" ? (
-        <Link href="/privacy" className="text-lg font-medium text-[#1E1E1E]/50 hover:text-[#1E1E1E] transition-colors">
+        <Link href="/privacy" className="text-base md:text-lg font-medium text-[#1E1E1E]/50 hover:text-[#1E1E1E] transition-colors">
           Privacy Policy
         </Link>
       ) : null}

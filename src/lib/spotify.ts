@@ -190,6 +190,24 @@ export async function enrichWithPreviews(
   return tracks.map((t) => (t.preview_url ? t : (fullMap.get(t.id) ?? t)));
 }
 
+export async function checkLikedTracks(
+  accessToken: string,
+  trackIds: string[]
+): Promise<Set<string>> {
+  if (trackIds.length === 0) return new Set();
+  const liked = new Set<string>();
+  // Spotify allows max 50 IDs per request
+  for (let i = 0; i < trackIds.length; i += 50) {
+    const chunk = trackIds.slice(i, i + 50);
+    const results = await spotifyFetch<boolean[]>(
+      `/me/tracks/contains?ids=${chunk.join(",")}`,
+      accessToken
+    ).catch(() => chunk.map(() => false));
+    chunk.forEach((id, idx) => { if (results[idx]) liked.add(id); });
+  }
+  return liked;
+}
+
 export async function removeFromLikedSongs(
   accessToken: string,
   trackId: string

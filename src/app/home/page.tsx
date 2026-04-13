@@ -121,7 +121,7 @@ export default function HomePage() {
   const showControls = activeView === "home" && !loading && !isDone && !error && !!currentTrack;
 
   return (
-    <section className="relative min-h-screen bg-[#371F7D] flex items-center justify-center px-4 pt-24 pb-8 md:pt-8">
+    <section className="relative min-h-screen bg-[#371F7D] flex items-center justify-center px-4 pt-24 pb-20 md:pb-8 md:pt-8">
 
       {/* Like error toast */}
       {likeError && (

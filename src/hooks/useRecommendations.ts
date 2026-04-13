@@ -3,6 +3,24 @@ import { SpotifyTrack } from "@/types/spotify";
 import { PlayerState } from "@/components/CircularPlayer";
 import { fetchWithTimeout } from "@/lib/fetch";
 
+const SEEN_KEY = "beatbond_seen_tracks";
+const SEEN_MAX = 300;
+
+function loadSeen(): Set<string> {
+  try {
+    const raw = localStorage.getItem(SEEN_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch { return new Set(); }
+}
+
+function saveSeen(seen: Set<string>) {
+  try {
+    // Keep the most recent SEEN_MAX to avoid unbounded growth
+    const arr = Array.from(seen).slice(-SEEN_MAX);
+    localStorage.setItem(SEEN_KEY, JSON.stringify(arr));
+  } catch { /* ignore */ }
+}
+
 export interface Filters {
   genres: string[];
   energy: number | null;
@@ -77,15 +95,22 @@ export function useRecommendations(
     setIndex(0);
     setLastActionWasDislike(false);
     try {
+      const seen = loadSeen();
       const params = new URLSearchParams();
       if (genres.length > 0) params.set("genres", genres.join(","));
       if (energy != null) params.set("energy", energy.toString());
       if (mood != null) params.set("mood", mood.toString());
+      if (seen.size > 0) params.set("exclude", Array.from(seen).join(","));
       const url = `/api/spotify/recommendations${params.toString() ? `?${params}` : ""}`;
       const res = await fetchWithTimeout(url);
       if (!res.ok) throw new Error();
       const data = await res.json();
-      setTracks(data.tracks ?? []);
+      const incoming: SpotifyTrack[] = data.tracks ?? [];
+      // Mark all returned tracks as seen
+      const updated = loadSeen();
+      incoming.forEach((t) => updated.add(t.id));
+      saveSeen(updated);
+      setTracks(incoming);
     } catch {
       setError("Could not load recommendations. Try again.");
     } finally {
