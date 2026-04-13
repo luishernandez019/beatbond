@@ -121,7 +121,7 @@ export default function HomePage() {
   const showControls = activeView === "home" && !loading && !isDone && !error && !!currentTrack;
 
   return (
-    <section className="relative min-h-screen bg-[#371F7D] flex items-center justify-center px-4 pt-24 pb-20 md:pb-8 md:pt-8">
+    <section className="relative min-h-screen bg-[#371F7D] flex items-center justify-center px-4">
 
       {/* Like error toast */}
       {likeError && (
@@ -156,11 +156,11 @@ export default function HomePage() {
               className="flex flex-col items-center gap-8"
             >
               {/* Card stack */}
-              <div className="relative w-[320px] h-[480px]">
+              <div className="relative w-[320px] h-[390px]">
                 {loading ? (
                   <div className="flex flex-col items-center justify-center h-full gap-4 text-white">
                     <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-                    <p className="text-white/50 text-sm">Finding songs for you…</p>
+                    <p className="text-white/50 text-sm">Encontrando canciones para ti…</p>
                   </div>
                 ) : error ? (
                   <div className="flex flex-col items-center justify-center h-full gap-4 text-white text-center">
@@ -170,7 +170,7 @@ export default function HomePage() {
                       onClick={fetchRecommendations}
                       className="bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-full text-sm font-semibold transition cursor-pointer"
                     >
-                      Retry
+                      Intenta de nuevo
                     </button>
                   </div>
                 ) : isDone ? (
@@ -496,8 +496,8 @@ export default function HomePage() {
 
         </AnimatePresence>
 
-        {/* FloatingNav — horizontal on mobile/tablet */}
-        <div className="lg:hidden">
+        {/* FloatingNav — horizontal on mobile/tablet, fixed at bottom */}
+        <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
           <FloatingNav
             activeView={activeView}
             onNavigate={setActiveView}
