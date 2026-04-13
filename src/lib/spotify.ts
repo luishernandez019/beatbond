@@ -47,16 +47,63 @@ export async function getTopArtists(
   return data.items;
 }
 
+export interface RecommendationFilters {
+  genres?: string[];
+  energy?: number | null;
+  mood?: number | null;
+}
+
 export async function getRecommendations(
   accessToken: string,
-  seedTrackIds: string[]
+  seedTrackIds: string[],
+  filters?: RecommendationFilters
 ): Promise<SpotifyTrack[]> {
-  const seeds = seedTrackIds.slice(0, 5).join(",");
+  const { genres = [], energy = null, mood = null } = filters ?? {};
+
+  const genreSeeds = genres.slice(0, 3);
+  const trackSeeds = seedTrackIds.slice(0, 5 - genreSeeds.length);
+
+  const params = new URLSearchParams({ limit: "20" });
+  if (trackSeeds.length > 0) params.set("seed_tracks", trackSeeds.join(","));
+  if (genreSeeds.length > 0) params.set("seed_genres", genreSeeds.join(","));
+  if (energy != null) params.set("target_energy", energy.toFixed(2));
+  if (mood != null) params.set("target_valence", mood.toFixed(2));
+
   const data = await spotifyFetch<{ tracks: SpotifyTrack[] }>(
-    `/recommendations?seed_tracks=${seeds}&limit=20`,
+    `/recommendations?${params}`,
     accessToken
   );
   return data.tracks;
+}
+
+export async function getTracksByGenres(
+  accessToken: string,
+  genres: string[]
+): Promise<SpotifyTrack[]> {
+  const limitPerGenre = Math.ceil(20 / genres.length);
+
+  const batches = await Promise.all(
+    genres.map((g) =>
+      spotifyFetch<{ tracks: { items: SpotifyTrack[] } }>(
+        `/search?q=genre:${encodeURIComponent(g)}&type=track&limit=${limitPerGenre}`,
+        accessToken
+      )
+        .then((d) => d.tracks.items)
+        .catch(() => [] as SpotifyTrack[])
+    )
+  );
+
+  const seen = new Set<string>();
+  const tracks: SpotifyTrack[] = [];
+  for (const batch of batches) {
+    for (const t of batch) {
+      if (!seen.has(t.id)) {
+        seen.add(t.id);
+        tracks.push(t);
+      }
+    }
+  }
+  return tracks.slice(0, 20);
 }
 
 export async function getRelatedArtists(
@@ -83,11 +130,12 @@ export async function getArtistTopTracks(
 
 export async function getNewReleases(
   accessToken: string,
-  limit = 20
+  limit = 20,
+  offset = 0
 ): Promise<SpotifyTrack[]> {
   type SpotifyAlbumItem = SpotifyTrack["album"] & { artists: SpotifyTrack["artists"] };
   const data = await spotifyFetch<{ albums: { items: SpotifyAlbumItem[] } }>(
-    `/browse/new-releases?limit=10&country=US`,
+    `/browse/new-releases?limit=10&offset=${offset}&country=US`,
     accessToken
   );
 
@@ -140,6 +188,17 @@ export async function enrichWithPreviews(
   const fullMap = new Map(full.map((t) => [t.id, t]));
 
   return tracks.map((t) => (t.preview_url ? t : (fullMap.get(t.id) ?? t)));
+}
+
+export async function removeFromLikedSongs(
+  accessToken: string,
+  trackId: string
+): Promise<void> {
+  await spotifyFetch<undefined>(
+    `/me/tracks?ids=${trackId}`,
+    accessToken,
+    { method: "DELETE" }
+  );
 }
 
 export async function addToLikedSongs(

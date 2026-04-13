@@ -1,9 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
-import { Settings, Heart } from "lucide-react";
+import { Settings, Heart, History } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-export type NavView = "home" | "settings" | "liked";
+export type NavView = "home" | "liked" | "history" | "settings";
 
 interface NavItem {
   id: NavView;
@@ -12,8 +12,9 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: "home",     icon: null     },
-  { id: "settings", icon: Settings },
   { id: "liked",    icon: Heart    },
+  { id: "history",  icon: History  },
+  { id: "settings", icon: Settings },
 ];
 
 interface FloatingNavProps {
@@ -77,7 +78,7 @@ export function FloatingNav({ activeView, onNavigate, orientation, instanceId = 
                 <Icon
                   size={20}
                   color={isActive ? "#D7FF81" : "#371F7D"}
-                  fill={isActive ? "#D7FF81" : "none"}
+                  fill={id === "liked" && isActive ? "#D7FF81" : "none"}
                 />
               )}
             </span>

@@ -15,6 +15,8 @@ interface SongCardProps {
   onLike: () => void;
   onDislike: () => void;
   isTop: boolean;
+  isReverted?: boolean;
+  onReverted?: () => void;
   onPlayerState?: (state: PlayerState) => void;
 }
 
@@ -22,7 +24,7 @@ const SWIPE_THRESHOLD = 80;
 const VELOCITY_THRESHOLD = 400;
 
 const SongCard = forwardRef<SongCardHandle, SongCardProps>(function SongCard(
-  { track, onLike, onDislike, isTop, onPlayerState },
+  { track, onLike, onDislike, isTop, isReverted = false, onReverted, onPlayerState },
   ref
 ) {
   const controls = useAnimation();
@@ -113,6 +115,15 @@ const SongCard = forwardRef<SongCardHandle, SongCardProps>(function SongCard(
     if (!isTop || !audioRef.current) return;
     audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
   }, [isTop]);
+
+  // Slide-in from the left when card is being reverted
+  useEffect(() => {
+    if (!isReverted) return;
+    onReverted?.();
+    controls.set({ x: -600, opacity: 0, rotate: -10 });
+    controls.start({ x: 0, opacity: 1, rotate: 0, transition: { type: "spring", stiffness: 280, damping: 26 } });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function pauseAudio() {
     cancelAnimationFrame(rafRef.current);
